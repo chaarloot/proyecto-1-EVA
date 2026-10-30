@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+      MARIADB_DATABASE: psyagent_db
+    volumes:
+      - mysql_datos:/var/lib/mysql
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6343:6333"
+    volumes:
+      - qdrant_datos:/qdrant/storage
+
+  app:
+    build: .
+    ports:
+      - "8080:8000"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      QDRANT_URL: http://qdrant:6333
+      OLLAMA_HOST: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - mysql
+      - qdrant
+
+volumes:
+  mysql_datos:
+  qdrant_datos:
